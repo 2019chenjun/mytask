@@ -1,0 +1,58 @@
+name: GLaDOS 自动签到
+
+on:
+  # 定时任务：每天 UTC 16:40 执行（对应北京时间 00:40）
+  schedule:
+    - cron: '40 16 * * *'
+  # 手动触发
+  workflow_dispatch:
+  # 推送代码时触发（可选，用于测试）
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  checkin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: 安装依赖
+        run: |
+          pip install -r requirements.txt
+          # 如果需要使用 SOCKS 代理，取消下面的注释
+          # pip install requests[socks]
+      
+      - name: 执行签到
+        env:
+          # GLaDOS Cookie（必填）
+          # 在 GitHub Secrets 中设置 GR_COOKIE
+          GR_COOKIE: ${{ secrets.GR_COOKIE }}
+          # 代理配置（可选）
+          # 在 GitHub Secrets 中设置 GR_PROXY，格式：
+          # - 单个代理: http://proxy.example.com:8080
+          # - 多个代理: http://proxy1.com:8080|http://proxy2.com:8080
+          # - SOCKS5: socks5://proxy.example.com:1080
+          GR_PROXY: ${{ secrets.GR_PROXY }}
+        run: |
+          python3 checkin.py
+      
+      - name: 上传日志（如果失败）
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkin-logs
+          path: |
+            *.log
+            *.txt
+
