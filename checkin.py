@@ -17,6 +17,7 @@ import os
 import sys
 import time
 import random
+import gzip
 
 # 获取代理配置
 def get_proxies():
@@ -166,7 +167,7 @@ def checkin(cookie, max_retries=3, proxies=None):
         'user-agent': useragent,
         'accept': 'application/json, text/plain, */*',
         'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-        'accept-encoding': 'gzip, deflate, br',
+        'accept-encoding': 'gzip, deflate',
         'content-type': 'application/json;charset=UTF-8',
         'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         'sec-ch-ua-mobile': '?0',
@@ -252,7 +253,7 @@ def checkin(cookie, max_retries=3, proxies=None):
                         'user-agent': useragent,
                         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                         'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
-                        'accept-encoding': 'gzip, deflate, br',
+                        'accept-encoding': 'gzip, deflate',
                         'sec-fetch-dest': 'document',
                         'sec-fetch-mode': 'navigate',
                         'sec-fetch-site': 'none',
@@ -276,7 +277,7 @@ def checkin(cookie, max_retries=3, proxies=None):
                 timeout=(10, 30),  # (连接超时, 读取超时)
                 allow_redirects=True
             )
-            
+
             # 检查HTTP状态码
             if checkin_response.status_code != 200:
                 if attempt < max_retries - 1:
@@ -297,7 +298,7 @@ def checkin(cookie, max_retries=3, proxies=None):
                 'user-agent': useragent,
                 'accept': 'application/json, text/plain, */*',
                 'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
-                'accept-encoding': 'gzip, deflate, br',
+                'accept-encoding': 'gzip, deflate',
                 'sec-fetch-dest': 'empty',
                 'sec-fetch-mode': 'cors',
                 'sec-fetch-site': 'same-origin',
@@ -308,7 +309,7 @@ def checkin(cookie, max_retries=3, proxies=None):
                 timeout=(10, 30),
                 allow_redirects=True
             )
-            
+
             if state_response.status_code != 200:
                 if attempt < max_retries - 1:
                     print(f"获取状态失败，HTTP状态码：{state_response.status_code}，正在重试... ({attempt + 1}/{max_retries})")
@@ -320,8 +321,18 @@ def checkin(cookie, max_retries=3, proxies=None):
             
             # 解析响应
             try:
-                checkin_data = checkin_response.json()
-                state_data = state_response.json()
+                # requests库已自动解压gzip，直接使用text
+                checkin_text = checkin_response.text
+                state_text = state_response.text
+
+                # 如果原始内容是gzip格式（未被requests解压），手动解压
+                if checkin_response.content[:2] == b'\x1f\x8b':
+                    checkin_text = gzip.decompress(checkin_response.content).decode('utf-8')
+                if state_response.content[:2] == b'\x1f\x8b':
+                    state_text = gzip.decompress(state_response.content).decode('utf-8')
+
+                checkin_data = json.loads(checkin_text)
+                state_data = json.loads(state_text)
                 
                 mess = checkin_data.get('message', '未知')
                 mail = state_data.get('data', {}).get('email', 'unknown')
