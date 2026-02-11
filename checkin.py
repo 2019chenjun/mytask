@@ -155,7 +155,7 @@ def checkin(cookie, max_retries=3, proxies=None):
     useragent = get_random_user_agent()
     
     payload={
-        'token': 'glados.one'
+        'token': 'glados.cloud'
     }
     
     # 模拟真实浏览器的完整请求头

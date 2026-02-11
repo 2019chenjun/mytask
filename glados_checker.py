@@ -54,7 +54,7 @@ class GladosChecker:
         """执行签到"""
         try:
             headers = {**self.headers, 'cookie': cookie}
-            payload = {'token': 'glados.one'}
+            payload = {'token': 'glados.cloud'}
             response = requests.post(
                 f"{self.base_url}/api/user/checkin",
                 headers=headers,
