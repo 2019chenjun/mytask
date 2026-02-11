@@ -69,7 +69,7 @@ def get_current_ip(proxies=None):
 # 检测IP是否被封禁
 def check_ip_blocked(proxies=None):
     """检测IP是否被封禁，尝试访问目标网站"""
-    test_url = "https://glados.rocks"
+    test_url = "https://glados.cloud"
     try:
         response = requests.get(
             test_url,
@@ -145,11 +145,11 @@ def get_random_user_agent():
 
 # GlaDOS签到
 def checkin(cookie, max_retries=3, proxies=None):
-    checkin_url= "https://glados.rocks/api/user/checkin"
-    state_url= "https://glados.rocks/api/user/status"
-    console_url = "https://glados.rocks/console/checkin"
-    referer = 'https://glados.rocks/console/checkin'
-    origin = "https://glados.rocks"
+    checkin_url= "https://glados.cloud/api/user/checkin"
+    state_url= "https://glados.cloud/api/user/status"
+    console_url = "https://glados.cloud/console/checkin"
+    referer = 'https://glados.cloud/console/checkin'
+    origin = "https://glados.cloud"
     
     # 随机选择User-Agent
     useragent = get_random_user_agent()

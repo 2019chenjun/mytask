@@ -9,11 +9,11 @@ import logging
 
 class GladosChecker:
     def __init__(self):
-        self.base_url = "https://glados.rocks"
+        self.base_url = "https://glados.cloud"
         self.headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36',
-            'origin': 'https://glados.rocks',
-            'referer': 'https://glados.rocks/console/checkin',
+            'origin': 'https://glados.cloud',
+            'referer': 'https://glados.cloud/console/checkin',
             'content-type': 'application/json;charset=UTF-8'
         }
         self.setup_logging()

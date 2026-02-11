@@ -68,7 +68,7 @@ python3 checkin.py
 
 ### Cookie 获取方法
 
-1. 登录 [GLaDOS](https://glados.rocks)
+1. 登录 [GLaDOS](https://glados.cloud)
 2. 打开浏览器开发者工具（F12）
 3. 进入 **Network** 标签
 4. 刷新页面，找到任意请求

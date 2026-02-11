@@ -1,6 +1,6 @@
 Cookies = [
-    'koa:sess=eyJ1c2VySWQiOjkwNTYzLCJfZXhwaXJlIjoxNzk2NjI4MjU1ODIwLCJfbWF4QWdlIjoyNTkyMDAwMDAwMH0=; koa:sess.sig=kX1cusEI8sOMD-59CQbXCWhR2sQ'
-    ]
+    "koa:sess=eyJ1c2VySWQiOjkwNTYzLCJfZXhwaXJlIjoxNzk2NjkzOTA0NDY1LCJfbWF4QWdlIjoyNTkyMDAwMDAwMH0=; koa:sess.sig=Rdm4hO7AiTWtuWocjn5IdiM3BsQ"
+]
 
 # 代理配置（可选）
 # 支持格式：
