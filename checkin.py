@@ -31,7 +31,7 @@ def get_proxies():
                 proxies_list = [p.strip() for p in proxy.split('|')]
                 return proxies_list
             return proxy
-    
+
     # 使用配置文件
     try:
         from config import Proxies
@@ -41,7 +41,7 @@ def get_proxies():
             return Proxies
     except:
         pass
-    
+
     return None
 
 # 检测当前IP地址
@@ -52,7 +52,7 @@ def get_current_ip(proxies=None):
         "https://ifconfig.me/ip",
         "https://api.ip.sb/ip",
     ]
-    
+
     for url in ip_check_urls:
         try:
             response = requests.get(url, timeout=10, proxies=proxies)
@@ -151,14 +151,14 @@ def checkin(cookie, max_retries=3, proxies=None):
     console_url = "https://glados.cloud/console/checkin"
     referer = 'https://glados.cloud/console/checkin'
     origin = "https://glados.cloud"
-    
+
     # 随机选择User-Agent
     useragent = get_random_user_agent()
-    
+
     payload={
         'token': 'glados.cloud'
     }
-    
+
     # 模拟真实浏览器的完整请求头
     headers = {
         'cookie': cookie,
@@ -176,15 +176,15 @@ def checkin(cookie, max_retries=3, proxies=None):
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-origin',
     }
-    
+
     # 使用Session保持连接，减少连接重置问题
     # 配置连接池和重试适配器
     from requests.adapters import HTTPAdapter
     from urllib3.util.retry import Retry
-    
+
     session = requests.Session()
     session.headers.update(headers)
-    
+
     # 设置代理
     if proxies:
         if isinstance(proxies, list):
@@ -192,7 +192,7 @@ def checkin(cookie, max_retries=3, proxies=None):
             proxy = random.choice(proxies)
         else:
             proxy = proxies
-        
+
         # 配置代理
         if proxy.startswith('socks5://') or proxy.startswith('socks4://'):
             # SOCKS代理需要安装requests[socks]
@@ -214,7 +214,7 @@ def checkin(cookie, max_retries=3, proxies=None):
                 'https': proxy
             }
         print(f"使用代理: {proxy}")
-    
+
     # 配置重试策略，兼容新旧版本的urllib3
     try:
         # 新版本urllib3使用allowed_methods
@@ -232,7 +232,7 @@ def checkin(cookie, max_retries=3, proxies=None):
             status_forcelist=[429, 500, 502, 503, 504],
             method_whitelist=["GET", "POST"]
         )
-    
+
     adapter = HTTPAdapter(
         max_retries=retry_strategy,
         pool_connections=1,  # 限制连接池大小
@@ -240,7 +240,7 @@ def checkin(cookie, max_retries=3, proxies=None):
     )
     session.mount("https://", adapter)
     session.mount("http://", adapter)
-    
+
     # 重试机制
     for attempt in range(max_retries):
         try:
@@ -265,11 +265,11 @@ def checkin(cookie, max_retries=3, proxies=None):
                     time.sleep(random.uniform(1, 3))
                 except:
                     pass  # 如果访问控制台失败，继续执行签到
-            
+
             # 添加超时设置，并在请求前稍作延迟，避免请求过快
             if attempt > 0:
                 time.sleep(random.uniform(2, 5))  # 随机延迟2-5秒
-            
+
             # 添加超时设置
             checkin_response = session.post(
                 checkin_url,
@@ -287,10 +287,10 @@ def checkin(cookie, max_retries=3, proxies=None):
                 else:
                     print(f"签到请求失败，HTTP状态码：{checkin_response.status_code}")
                     return None, None, None
-            
+
             # 获取状态信息，两个请求之间随机延迟（模拟真实用户行为）
             time.sleep(random.uniform(0.5, 1.5))
-            
+
             # 更新状态请求的头部（GET请求的头部略有不同）
             state_headers = {
                 'cookie': cookie,
@@ -318,7 +318,7 @@ def checkin(cookie, max_retries=3, proxies=None):
                 else:
                     print(f"获取状态失败，HTTP状态码：{state_response.status_code}")
                     return None, None, None
-            
+
             # 解析响应
             try:
                 # requests库已自动解压gzip，直接使用text
@@ -333,13 +333,13 @@ def checkin(cookie, max_retries=3, proxies=None):
 
                 checkin_data = json.loads(checkin_text)
                 state_data = json.loads(state_text)
-                
+
                 mess = checkin_data.get('message', '未知')
                 mail = state_data.get('data', {}).get('email', 'unknown')
                 left_days = float(state_data['data']["leftDays"])
-                
+
                 return mess, left_days, mail
-                
+
             except (KeyError, ValueError, json.JSONDecodeError) as e:
                 print(f"解析响应数据失败：{e}")
                 if attempt < max_retries - 1:
@@ -348,7 +348,7 @@ def checkin(cookie, max_retries=3, proxies=None):
                     continue
                 else:
                     return None, None, None
-                    
+
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
             if attempt < max_retries - 1:
                 print(f"网络连接失败：{e}，正在重试... ({attempt + 1}/{max_retries})")
@@ -366,7 +366,7 @@ def checkin(cookie, max_retries=3, proxies=None):
                 return None, None, None
         finally:
             session.close()
-    
+
     return None, None, None
 
 
@@ -376,10 +376,10 @@ def run_checkin():
     cookies = get_cookies()
     if not cookies:
         return ""
-    
+
     # 获取代理配置
     proxies = get_proxies()
-    
+
     # 检测IP状态
     if proxies:
         if isinstance(proxies, list):
@@ -399,7 +399,7 @@ def run_checkin():
             print(f"当前出口IP: {current_ip}")
         else:
             print("警告: 无法获取出口IP")
-        
+
         # 检测IP是否被封禁
         is_blocked, reason = check_ip_blocked()
         if is_blocked:
@@ -413,11 +413,11 @@ def run_checkin():
         ret, remain, email = checkin(cookie, proxies=proxies)
         if not ret:
             continue
-            
+
         content = f"账号：{email}\n签到结果：{ret}\n剩余天数：{remain}\n"
         print(content)
         contents.append(content)
-        
+
         # 多个账号之间随机延迟，模拟真实用户切换账号的时间
         if cookie != cookies[-1]:  # 不是最后一个账号
             delay = random.uniform(3, 8)
