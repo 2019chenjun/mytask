@@ -1,5 +1,5 @@
 Cookies = [
-    "koa:sess=eyJ1c2VySWQiOjkwNTYzLCJfZXhwaXJlIjoxNzk2NjkzOTA0NDY1LCJfbWF4QWdlIjoyNTkyMDAwMDAwMH0=; koa:sess.sig=Rdm4hO7AiTWtuWocjn5IdiM3BsQ"
+    "koa:sess=eyJ1c2VySWQiOjkwNTYzLCJfZXhwaXJlIjoxNzk2NjkzOTA0NDY1LCJfbWF4QWdlIjoyNTkyMDAwMDAwMH0=; koa:sess.sig=Rdm4hO7AiTWtuWocjn5IdiM3BsQ","koa:sess=eyJ1c2VySWQiOjczNjE2MiwiX2V4cGlyZSI6MTgwOTI0ODM2MTIyMCwiX21heEFnZSI6MjU5MjAwMDAwMDB9; koa:sess.sig=hxEymmvOFWuNO5mRopl2UuiLIzQ"
 ]
 
 # 代理配置（可选）
