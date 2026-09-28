@@ -8,8 +8,9 @@
 
 #### 必需配置：
 - **GR_COOKIE**: GLaDOS 账号的 Cookie
-  - 获取方式：登录 GLaDOS 网站后，在浏览器开发者工具中复制 Cookie
-  - 格式：`koa:sess=xxx; koa:sess.sig=xxx`
+  - 获取方式：登录 https://glados.cloud 签到页，在 Network 里复制 Cookie
+  - 格式（2026 新验签，四项都要）：`koa:sess=xxx; koa:sess.sig=xxx; gld:sess=gld_xxx; gld:sess.sig=xxx`
+  - 缺少 `gld:sess` / `gld:sess.sig` 会返回「没有权限」
   - 多个账号：用 `&` 或换行符分隔
 
 #### 可选配置：

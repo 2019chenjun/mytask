@@ -71,8 +71,18 @@ python3 checkin.py
 1. 登录 [GLaDOS](https://glados.cloud)
 2. 打开浏览器开发者工具（F12）
 3. 进入 **Network** 标签
-4. 刷新页面，找到任意请求
+4. 刷新签到页或点一次签到，找到 `/api/user/status` 或 `/api/user/checkin` 请求
 5. 在请求头中找到 `Cookie`，复制完整内容
+
+**必含字段（2026 新验签）：**
+
+```text
+koa:sess=...; koa:sess.sig=...; gld:sess=gld_...; gld:sess.sig=...
+```
+
+- 缺少 `gld:sess` / `gld:sess.sig` 会返回 `没有权限`
+- `__stripe_mid` 可忽略，与鉴权无关
+- 多账号在 `config.py` 用列表，或在环境变量 `GR_COOKIE` 用 `&` / 换行分隔
 
 ### 代理配置（可选）
 
@@ -125,6 +135,9 @@ Proxies = [
 4. **依赖更新**：添加新功能时记得更新 `requirements.txt`
 
 ## 常见问题
+
+### Q: 返回「没有权限」怎么办？
+A: Cookie 缺少新会话字段。请重新从浏览器复制完整 Cookie，必须包含 `gld:sess` 和 `gld:sess.sig`（不能只复制 `koa:sess`）。
 
 ### Q: 出现 104 错误怎么办？
 A: 这是连接被重置，可能是 IP 被封禁。建议：
