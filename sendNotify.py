@@ -34,10 +34,10 @@ DD_BOT_TOKEN = ""  # 钉钉机器人的DD_BOT_TOKEN; secrets可填
 DD_BOT_SECRET = ""  # 钉钉机器人的DD_BOT_SECRET; secrets可填
 QQ_SKEY = ""  # qq机器人的QQ_SKEY; secrets可填
 QQ_MODE = ""  # qq机器人的QQ_MODE; secrets可填
-QYWX_AM = ""  # 企业微信
-QYWX_KEY = ""  # 企业微信BOT
+QYWX_AM = ""  # 企业微信应用推送
+QYWX_KEY = "a7d93702-8476-4553-bcdd-cf29c5458300"  # 企业微信群机器人 webhook key
 PUSH_PLUS_TOKEN = ""  # 微信推送Plus+
-FEISHU = "https://open.feishu.cn/open-apis/bot/v2/hook/d9dba1af-c4b1-45e9-89da-2ec84c4e83dd"  # 飞书群
+FEISHU = ""  # 飞书群（已改用企微）
 notify_mode = []
 
 message_info = """"""
