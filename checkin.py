@@ -70,13 +70,13 @@ def get_current_ip(proxies=None):
 # 检测IP是否被封禁
 def check_ip_blocked(proxies=None):
     """检测IP是否被封禁，尝试访问目标网站"""
-    test_url = "https://glados.cloud"
+    test_url = "https://glados.rocks"
     try:
         response = requests.get(
             test_url,
             timeout=10,
             proxies=proxies,
-            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+            headers={'User-Agent': FALLBACK_UA}
         )
         # 如果返回403/429等，可能被封禁
         if response.status_code in [403, 429]:
@@ -125,56 +125,58 @@ def load_send():
         return None
 
 
-# 生成随机User-Agent，模拟真实浏览器
-def get_random_user_agent():
-    """返回随机的真实浏览器User-Agent"""
-    user_agents = [
-        # Chrome on Windows
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-        # Chrome on macOS
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-        # Edge on Windows
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
-        # Firefox on Windows
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
-    ]
-    return random.choice(user_agents)
+FALLBACK_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+)
+
+
+def resolve_user_agent(session, cookie, sessions_url):
+    """返回服务端记录的当前登录设备 UA，避免触发设备校验。"""
+    configured_ua = os.environ.get("GLADOS_USER_AGENT", "").strip()
+    if configured_ua:
+        return configured_ua
+
+    try:
+        response = session.get(
+            sessions_url,
+            headers={"Cookie": cookie, "User-Agent": FALLBACK_UA},
+            timeout=(10, 30),
+        )
+        data = response.json()
+        sessions = data.get("data") if isinstance(data, dict) else None
+        if response.status_code == 200 and isinstance(sessions, list) and sessions:
+            current = next((item for item in sessions if item.get("current")), None)
+            current = current or max(sessions, key=lambda item: item.get("lastSeen") or 0)
+            user_agent = current.get("ua")
+            if user_agent:
+                print(f"已匹配登录设备 User-Agent（{current.get('device', '未知设备')}）")
+                return user_agent
+    except (requests.RequestException, ValueError, TypeError, KeyError) as error:
+        print(f"读取登录设备 User-Agent 失败，将使用兜底 UA：{error}")
+
+    print("未读取到登录设备 User-Agent，将使用兜底 UA")
+    return FALLBACK_UA
 
 # GlaDOS签到
 def checkin(cookie, max_retries=3, proxies=None):
-    checkin_url= "https://glados.cloud/api/user/checkin"
-    state_url= "https://glados.cloud/api/user/status"
-    console_url = "https://glados.cloud/console/checkin"
-    referer = 'https://glados.cloud/console/checkin'
-    origin = "https://glados.cloud"
-
-    # 随机选择User-Agent
-    useragent = get_random_user_agent()
-
-    payload={
-        'token': 'glados.cloud'
-    }
+    origin = "https://glados.rocks"
+    checkin_url = f"{origin}/api/user/checkin"
+    state_url = f"{origin}/api/user/status"
+    sessions_url = f"{origin}/api/user/sessions"
+    referer = f"{origin}/console/checkin"
+    payload = {'token': 'glados.rocks'}
 
     # 模拟真实浏览器的完整请求头
     headers = {
         'cookie': cookie,
         'referer': referer,
         'origin': origin,
-        'user-agent': useragent,
+        'user-agent': FALLBACK_UA,
         'accept': 'application/json, text/plain, */*',
         'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
         'accept-encoding': 'gzip, deflate',
         'content-type': 'application/json;charset=UTF-8',
-        'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
     }
 
     # 使用Session保持连接，减少连接重置问题
@@ -241,31 +243,12 @@ def checkin(cookie, max_retries=3, proxies=None):
     session.mount("https://", adapter)
     session.mount("http://", adapter)
 
+    useragent = resolve_user_agent(session, cookie, sessions_url)
+    session.headers.update({'User-Agent': useragent})
+
     # 重试机制
     for attempt in range(max_retries):
         try:
-            # 模拟真实浏览器：先访问控制台页面（可选，但更真实）
-            if attempt == 0:
-                # 第一次尝试时，先访问控制台页面，模拟用户打开页面
-                try:
-                    console_headers = {
-                        'cookie': cookie,
-                        'user-agent': useragent,
-                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                        'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
-                        'accept-encoding': 'gzip, deflate',
-                        'sec-fetch-dest': 'document',
-                        'sec-fetch-mode': 'navigate',
-                        'sec-fetch-site': 'none',
-                        'sec-fetch-user': '?1',
-                        'upgrade-insecure-requests': '1',
-                    }
-                    session.get(console_url, headers=console_headers, timeout=(10, 15))
-                    # 模拟用户停留时间
-                    time.sleep(random.uniform(1, 3))
-                except:
-                    pass  # 如果访问控制台失败，继续执行签到
-
             # 添加超时设置，并在请求前稍作延迟，避免请求过快
             if attempt > 0:
                 time.sleep(random.uniform(2, 5))  # 随机延迟2-5秒
@@ -287,6 +270,25 @@ def checkin(cookie, max_retries=3, proxies=None):
                 else:
                     print(f"签到请求失败，HTTP状态码：{checkin_response.status_code}")
                     return None, None, None
+
+            try:
+                checkin_data = checkin_response.json()
+            except ValueError as error:
+                print(f"签到响应不是有效 JSON：{error}")
+                return None, None, None
+
+            # 新版接口在 UA 与已登录设备不一致时返回 HTTP 200，但业务码为 4。
+            if checkin_data.get('code') == 4 or checkin_data.get('reason') == 'device-mismatch':
+                print(
+                    "签到被设备校验拒绝："
+                    f"登录设备={checkin_data.get('loginDevice', '未知')}，"
+                    f"当前设备={checkin_data.get('currentDevice', '未知')}"
+                )
+                return None, None, None
+
+            if checkin_data.get('code') not in (0, 1):
+                print(f"签到失败：{checkin_data.get('message', checkin_data)}")
+                return None, None, None
 
             # 获取状态信息，两个请求之间随机延迟（模拟真实用户行为）
             time.sleep(random.uniform(0.5, 1.5))
@@ -331,7 +333,6 @@ def checkin(cookie, max_retries=3, proxies=None):
                 if state_response.content[:2] == b'\x1f\x8b':
                     state_text = gzip.decompress(state_response.content).decode('utf-8')
 
-                checkin_data = json.loads(checkin_text)
                 state_data = json.loads(state_text)
 
                 mess = checkin_data.get('message', '未知')
@@ -364,9 +365,7 @@ def checkin(cookie, max_retries=3, proxies=None):
                 continue
             else:
                 return None, None, None
-        finally:
-            session.close()
-
+    session.close()
     return None, None, None
 
 

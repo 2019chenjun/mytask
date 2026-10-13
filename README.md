@@ -68,7 +68,7 @@ python3 checkin.py
 
 ### Cookie 获取方法
 
-1. 登录 [GLaDOS](https://glados.cloud)
+1. 登录 [GLaDOS](https://glados.rocks)
 2. 打开浏览器开发者工具（F12）
 3. 进入 **Network** 标签
 4. 刷新签到页或点一次签到，找到 `/api/user/status` 或 `/api/user/checkin` 请求
@@ -83,6 +83,8 @@ koa:sess=...; koa:sess.sig=...; gld:sess=gld_...; gld:sess.sig=...
 - 缺少 `gld:sess` / `gld:sess.sig` 会返回 `没有权限`
 - `__stripe_mid` 可忽略，与鉴权无关
 - 多账号在 `config.py` 用列表，或在环境变量 `GR_COOKIE` 用 `&` / 换行分隔
+- 脚本会先从 `/api/user/sessions` 读取登录设备的 User-Agent；如读取失败，可设置
+  `GLADOS_USER_AGENT` 为浏览器登录时使用的完整 User-Agent。
 
 ### 代理配置（可选）
 
@@ -149,7 +151,7 @@ A: 这是连接被重置，可能是 IP 被封禁。建议：
 A: 编辑 `.github/workflows/checkin.yml` 中的 `cron` 表达式：
 ```yaml
 schedule:
-  - cron: '40 16 * * *'  # 分钟 小时 日 月 星期
+  - cron: '40 16 * * *'  # 分钟 小时 日 月 星期（北京时间 00:40）
 ```
 
 ### Q: 如何添加多个账号？

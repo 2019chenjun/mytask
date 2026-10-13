@@ -1,6 +1,6 @@
 Cookies = [
     # 账号1：需同时包含 koa:* 与 gld:*（2026 新验签）
-    "koa:sess=eyJ1c2VySWQiOjkwNTYzLCJfZXhwaXJlIjoxODExNjU1MzI5NDMyLCJfbWF4QWdlIjoyNTkyMDAwMDAwMH0=; koa:sess.sig=YCqnH-64Ae2r-xRk-drTaUxwLC4; gld:sess=gld_24606a8374ebb4d0e6cf763e56dc2eaccb88b180d3ea2741; gld:sess.sig=DD1SYIUc8GsmPcq8X-_m1P_lWbc"
+"koa:sess=eyJ1c2VySWQiOjkwNTYzLCJfZXhwaXJlIjoxODExNjU1MzI5NDMyLCJfbWF4QWdlIjoyNTkyMDAwMDAwMH0=; koa:sess.sig=YCqnH-64Ae2r-xRk-drTaUxwLC4; gld:sess=gld_e6d3098bcbbbd53cd8d9997696d2822c0a53b428b017b3e3; gld:sess.sig=qwUNlIyVoX-bMRw6F5bLDDkcOhE"
 ]
 
 # 代理配置（可选）
